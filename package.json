@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "Chat usando node.js, express e socket.io",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
   "author": "Matheus",
   "license": "MIT",
   "dependencies": {
