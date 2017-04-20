@@ -6,8 +6,8 @@
 		<meta http-equiv="X-UA-Compatible" content="ie-edge">
 		<title>Chat</title>
 
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-		<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+		<link rel="stylesheet" href="https://cdn.rawgit.com/m3tdesenvolvimento/5c7098abf823b94a93ff778af4383f02/raw/775b1f7de90a4297ae6df4b9f70e5b352c7923f1/theme.min.css">
+		<script type="text/javascript" src="https://cdn.rawgit.com/m3tdesenvolvimento/b4731fbd752597f13ccef07453abc5bd/raw/c9595ef1367a095a0e50e0eed3e833fee4bf58ac/jquery.min.js"></script>
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 		<style type="text/css">
 			body{
@@ -17,6 +17,11 @@
 			#messageArea{
 				display: none;
 			}
+
+			#chat{
+				height: 500px;
+    			overflow-y:scroll; 
+			}
 		</style>
 	</head>
 	<body>
@@ -25,7 +30,7 @@
 				<div class="well">
 					<h3>Entrar no chat</h3>
 				</div>
-				
+
 				<form id="userForm">
 					<div class="form-group">
 						<div class="input-group">
@@ -86,14 +91,19 @@
 			});
 
 			socket.on('new message', function(data) {
-				$chat.append('<li class="list-group-item list-group-item-default"><strong>' + data.username + '</strong>: ' + data.message + '</li>');
+				$chat.append("<li tabindex='1' class='list-group-item list-group-item-" + data.cor + "'><strong>" + data.username + '</strong>: ' + data.message + '</li>');
+				$("#chat li").last().addClass('active-li').focus();
+				$message.focus();
 			}); 
 
 			$userForm.submit(function(e) {
 				var username = $username.val().replace(/(<([^>]+)>)/ig, '');
 				e.preventDefault();
 
-				socket.emit('new user', username, function(data) {
+				var cores = ["default","info","success","warning","danger"];
+				var cor = cores.sort(function() {return 0.5 - Math.random()})[0];
+
+				socket.emit('new user', {username: username, cor: cor}, function(data) {
 					$userArea.hide();
 					$messageArea.show();
 				});
@@ -108,6 +118,18 @@
 
 				$users.html(html);
 			}); 
+
+			socket.on('logou', function(data) {
+				$chat.append('<li tabindex="1" class="list-group-item list-group-item-success"><h6 aling="center"><strong>' + data + '</strong> entrou na sala...</h6></li>');
+				$("#chat li").last().addClass('active-li').focus();
+				$message.focus();
+			});
+
+			socket.on('saiu', function(data) {
+				$chat.append('<li tabindex="1" class="list-group-item list-group-item-danger"><h6 aling="center"><strong>' + data + '</strong> saiu da sala...</h6></li>');
+				$("#chat li").last().addClass('active-li').focus();
+				$message.focus();
+			});
 		});
 	</script>
 </html>

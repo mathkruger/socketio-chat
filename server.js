@@ -20,6 +20,7 @@ io.on('connection', function(socket) {
 	socket.on('disconnect', function(data) {
 		users.splice(users.indexOf(socket.username),1);
 		updateUsernames();
+		io.emit('saiu', socket.username);
 
 		connections.splice(connections.indexOf(socket),1);
 
@@ -30,15 +31,20 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('send message', function(data) {
-		io.emit('new message', {message: data, username: socket.username});
-	})
+		io.emit('new message', {message: data, username: socket.username, cor: socket.cor});
+	});
 
 	socket.on('new user', function(data, callback) {
 		callback(true);
-		socket.username = data;
+		console.log(data);
+		socket.username = data.username;
+		socket.cor = data.cor;
 		users.push(socket.username);
+
+		io.emit('logou', socket.username);
+
 		updateUsernames();
-	})
+	});
 
 	function updateUsernames(){
 		io.emit('get users', users);
