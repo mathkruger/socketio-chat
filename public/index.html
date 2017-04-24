@@ -7,8 +7,10 @@
 		<title>Chat</title>
 
 		<link rel="stylesheet" href="https://cdn.rawgit.com/m3tdesenvolvimento/5c7098abf823b94a93ff778af4383f02/raw/775b1f7de90a4297ae6df4b9f70e5b352c7923f1/theme.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 		<script type="text/javascript" src="https://cdn.rawgit.com/m3tdesenvolvimento/b4731fbd752597f13ccef07453abc5bd/raw/c9595ef1367a095a0e50e0eed3e833fee4bf58ac/jquery.min.js"></script>
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript" src="/soundmanager2.js"></script>
 		<style type="text/css">
 			body{
 				margin: 20px;
@@ -82,6 +84,32 @@
 			var $username = $('#username');
 			var $users = $('#users');
 
+			function urlify(text) {
+			    var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+			    //var urlRegex = /(https?:\/\/[^\s]+)/g;
+			    return text.replace(urlRegex, function(url,b,c) {
+			        var url2 = (c == 'www.') ?  'http://' +url : url;
+			        return '<a href="' +url2+ '" target="_blank">' + url + '</a>';
+			    });
+			};
+
+			soundManager.setup({
+				url: '/',
+				debugMode: false,
+			    onready: function() {
+			    	soundManager.createSound({
+						id:'msn',
+						url:'/notification.mp3'
+					});
+			    },
+
+			    ontimeout: function() {
+			    	console.error('navegador sem suporte a emissão de sons :(');
+			    }
+			});
+
+					
+
 			$messageForm.submit(function(e) {
 				var message = $message.val().replace(/(<([^>]+)>)/ig, '');
 				e.preventDefault();
@@ -91,7 +119,14 @@
 			});
 
 			socket.on('new message', function(data) {
-				$chat.append("<li tabindex='1' class='list-group-item list-group-item-" + data.cor + "'><strong>" + data.username + '</strong>: ' + data.message + '</li>');
+				var username = $username.val().replace(/(<([^>]+)>)/ig, '');;
+
+				var message = urlify(data.message);
+				
+				if(data.username != username)
+					soundManager.play('msn');
+
+				$chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
 				$("#chat li").last().addClass('active-li').focus();
 				$message.focus();
 			}); 
@@ -107,26 +142,25 @@
 					$userArea.hide();
 					$messageArea.show();
 				});
-				$username.val('');
 			});
 
 			socket.on('get users', function(data) {
 				var html = '';
 
-				for (var i = 0; i < data.length; i++)
-					html += '<li class="list-group-item list-group-item-info">' + data[i] + '</li>';
+				for (var i = 0; i < data.cor.length; i++)
+					html += "<li class='list-group-item list-group-item-" + data.cor[i] + "'>" + data.username[i] + '</li>';
 
 				$users.html(html);
 			}); 
 
 			socket.on('logou', function(data) {
-				$chat.append('<li tabindex="1" class="list-group-item list-group-item-success"><h6 aling="center"><strong>' + data + '</strong> entrou na sala...</h6></li>');
+				$chat.append('<li tabindex="1" class="list-group-item list-group-item-success"><span class="fa fa-sign-in"></span> <strong>' + data + '</strong> entrou na sala...</li>');
 				$("#chat li").last().addClass('active-li').focus();
 				$message.focus();
 			});
 
 			socket.on('saiu', function(data) {
-				$chat.append('<li tabindex="1" class="list-group-item list-group-item-danger"><h6 aling="center"><strong>' + data + '</strong> saiu da sala...</h6></li>');
+				$chat.append('<li tabindex="1" class="list-group-item list-group-item-danger"><span class="fa fa-sign-out"></span> <strong>' + data + '</strong> saiu da sala...</li>');
 				$("#chat li").last().addClass('active-li').focus();
 				$message.focus();
 			});

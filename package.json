@@ -4,7 +4,7 @@
   "description": "Chat usando node.js, express e socket.io",
   "engines": {
     "node": "4.2.6",
-    "npm" : "3.5.2"
+    "npm": "3.5.2"
   },
   "main": "server.js",
   "author": "Matheus",
@@ -13,6 +13,7 @@
     "express": "^4.15.2",
     "jQuery": "^1.7.4",
     "ngrok": "^2.2.6",
-    "socket.io": "^1.7.3"
+    "socket.io": "^1.7.3",
+    "soundmanager2": "^2.97.20150601-a"
   }
 }

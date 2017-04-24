@@ -4,9 +4,26 @@ var io = require('socket.io').listen(http);
 
 connections = [];
 users = [];
+cores = [];
 
 app.get('/', function(req,res) {
-	res.sendFile(__dirname + '/index.html');
+	res.sendFile(__dirname + '/public/index.html');
+});
+
+app.get('/notification.mp3', function(req,res) {
+	res.sendFile(__dirname + '/public/notification.mp3');
+});
+
+app.get('/soundmanager2.js', function(req,res) {
+	res.sendFile(__dirname + '/public/soundmanager2.js');
+});
+
+app.get('/soundmanager2_debug.swf', function(req,res) {
+	res.sendFile(__dirname + '/public/soundmanager2_debug.swf');
+});
+
+app.get('/soundmanager2.swf', function(req,res) {
+	res.sendFile(__dirname + '/public/soundmanager2.swf');
 });
 
 io.on('connection', function(socket) {
@@ -19,6 +36,7 @@ io.on('connection', function(socket) {
 
 	socket.on('disconnect', function(data) {
 		users.splice(users.indexOf(socket.username),1);
+		cores.splice(cores.indexOf(socket.cor),1);
 		updateUsernames();
 		io.emit('saiu', socket.username);
 
@@ -40,6 +58,7 @@ io.on('connection', function(socket) {
 		socket.username = data.username;
 		socket.cor = data.cor;
 		users.push(socket.username);
+		cores.push(socket.cor);
 
 		io.emit('logou', socket.username);
 
@@ -47,7 +66,7 @@ io.on('connection', function(socket) {
 	});
 
 	function updateUsernames(){
-		io.emit('get users', users);
+		io.emit('get users', {username: users, cor: cores});
 	};
 
 });
