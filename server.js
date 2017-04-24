@@ -28,12 +28,8 @@ app.get('/soundmanager2.swf', function(req,res) {
 
 io.on('connection', function(socket) {
 	connections.push(socket);
-
-	if(connections.length === 1)
-		console.log('Conectado:',connections.length,'socket.');
-	else
-		console.log('Conectado:',connections.length,'sockets.');
-
+	writeNewConnection('c');
+	
 	socket.on('disconnect', function(data) {
 		users.splice(users.indexOf(socket.username),1);
 		cores.splice(cores.indexOf(socket.cor),1);
@@ -42,10 +38,7 @@ io.on('connection', function(socket) {
 
 		connections.splice(connections.indexOf(socket),1);
 
-		if(connections.length === 1)
-			console.log('Desconectado:',connections.length,'socket.');
-		else
-			console.log('Desconectado:',connections.length,'sockets.');
+		writeNewConnection('d');
 	});
 
 	socket.on('send message', function(data) {
@@ -54,7 +47,7 @@ io.on('connection', function(socket) {
 
 	socket.on('new user', function(data, callback) {
 		callback(true);
-		console.log(data);
+
 		socket.username = data.username;
 		socket.cor = data.cor;
 		users.push(socket.username);
@@ -69,8 +62,24 @@ io.on('connection', function(socket) {
 		io.emit('get users', {username: users, cor: cores});
 	};
 
+	function writeNewConnection(estado){
+		var stringEstado = '';
+
+		if(estado == 'c')
+			stringEstado = "Conectado:";
+		else
+			stringEstado = "Desconectado:";
+
+
+		if(connections.length === 1)
+			console.log(''+stringEstado,connections.length,'socket.');
+		else
+			console.log(''+stringEstado,connections.length,'sockets.');
+	}
+
 });
 
 http.listen(3000, function() {
-	console.log('Chat: Rodando...');
+	console.log('Chat: rodando na pota 3000...');
+	console.log('acesse http://localhost:3000');
 });

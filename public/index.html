@@ -119,7 +119,7 @@
 			});
 
 			socket.on('new message', function(data) {
-				var username = $username.val().replace(/(<([^>]+)>)/ig, '');;
+				var username = $username.val().replace(/(<([^>]+)>)/ig, '');
 
 				var message = urlify(data.message);
 				
