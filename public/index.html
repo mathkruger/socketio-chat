@@ -2,14 +2,14 @@
 <html lang="pt-br">
 	<head>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width-device-width, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="ie-edge">
 		<title>Chat</title>
 
 		<link rel="stylesheet" href="https://cdn.rawgit.com/m3tdesenvolvimento/5c7098abf823b94a93ff778af4383f02/raw/775b1f7de90a4297ae6df4b9f70e5b352c7923f1/theme.min.css">
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-		<script type="text/javascript" src="https://cdn.rawgit.com/m3tdesenvolvimento/b4731fbd752597f13ccef07453abc5bd/raw/c9595ef1367a095a0e50e0eed3e833fee4bf58ac/jquery.min.js"></script>
-		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 		<script type="text/javascript" src="/soundmanager2.js"></script>
 		<style type="text/css">
 			body{
@@ -30,7 +30,7 @@
 		<div class="container">
 			<div class="row" id="userArea">
 				<div class="well">
-					<h3>Entrar no chat</h3>
+					<h3><span class='fa fa-comments'></span>&nbsp Entrar no chat</h3>
 				</div>
 
 				<form id="userForm">
@@ -47,7 +47,7 @@
 
 			<div class="row" id="messageArea">
 				<div class="well">
-					<h3>Sala do chat</h3>
+					<h3> <span class='fa fa-comments'></span>&nbsp Sala do chat</h3>
 				</div>
 				
 				<div class="col-md-3">
@@ -86,7 +86,6 @@
 
 			function urlify(text) {
 			    var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
-			    //var urlRegex = /(https?:\/\/[^\s]+)/g;
 			    return text.replace(urlRegex, function(url,b,c) {
 			        var url2 = (c == 'www.') ?  'http://' +url : url;
 			        return '<a href="' +url2+ '" target="_blank">' + url + '</a>';
@@ -120,15 +119,14 @@
 
 			socket.on('new message', function(data) {
 				var username = $username.val().replace(/(<([^>]+)>)/ig, '');
-
 				var message = urlify(data.message);
 				
-				if(data.username != username)
-					soundManager.play('msn');
-
 				$chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
 				$("#chat li").last().addClass('active-li').focus();
 				$message.focus();
+
+				if(data.username != username)
+					soundManager.play('msn');
 			}); 
 
 			$userForm.submit(function(e) {
