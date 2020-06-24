@@ -6,7 +6,7 @@
     "node": "4.2.6",
     "npm": "3.5.2"
   },
-  "main": "server.js",
+  "main": "index.js",
   "author": "Matheus",
   "license": "MIT",
   "dependencies": {
