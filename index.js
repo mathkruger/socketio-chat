@@ -80,6 +80,6 @@ io.on('connection', function(socket) {
 });
 
 http.listen(3000, function() {
-	console.log('Chat: rodando na pota 3000...');
+	console.log('Chat: rodando na porta 3000...');
 	console.log('acesse http://localhost:3000');
 });
