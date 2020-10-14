@@ -1,299 +1,261 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie-edge" />
-    <title>Chat</title>
 
-    <link
-      rel="stylesheet"
-      href="https://cdn.rawgit.com/m3tdesenvolvimento/5c7098abf823b94a93ff778af4383f02/raw/775b1f7de90a4297ae6df4b9f70e5b352c7923f1/theme.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
-    />
-    <script
-      type="text/javascript"
-      src="https://code.jquery.com/jquery-3.4.1.min.js"
-    ></script>
-    <script
-      type="text/javascript"
-      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"
-    ></script>
-    <script type="text/javascript" src="/soundmanager2.js"></script>
-    <style type="text/css">
-      body {
-        margin: 20px;
-      }
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie-edge">
+	<title>Chat</title>
 
-      #messageArea {
-        display: none;
-      }
+	<link rel="stylesheet"
+		href="https://cdn.rawgit.com/m3tdesenvolvimento/5c7098abf823b94a93ff778af4383f02/raw/775b1f7de90a4297ae6df4b9f70e5b352c7923f1/theme.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+	<script type="text/javascript" src="/soundmanager2.js"></script>
+	<style type="text/css">
+		body {
+			margin: 20px;
+		}
 
-      #chat {
-        height: 500px;
-        overflow-y: scroll;
-      }
-    </style>
-  </head>
+		#messageArea {
+			display: none;
+		}
 
-  <body>
-    <div class="container">
-      <div class="row" id="userArea">
-        <div class="well">
-          <h3><span class="fa fa-comments"></span>&nbsp Entrar no chat</h3>
-        </div>
+		#chat {
+			height: 500px;
+			overflow-y: scroll;
+		}
+	</style>
+</head>
 
-        <form id="userForm">
-          <div class="form-group">
-            <div class="input-group">
-              <input
-                class="form-control"
-                id="username"
-                placeholder="Digite seu nick"
-              />
-              <span class="input-group-btn">
-                <input type="submit" class="btn btn-success" />
-              </span>
-            </div>
-          </div>
-        </form>
-      </div>
+<body>
+	<div class="container">
+		<div class="row" id="userArea">
+			<div class="well">
+				<h3><span class='fa fa-comments'></span>&nbsp Entrar no chat</h3>
+			</div>
 
-      <div class="row" id="messageArea">
-        <div class="well">
-          <h3><span class="fa fa-comments"></span>&nbsp Sala do chat</h3>
-        </div>
+			<form id="userForm">
+				<div class="form-group">
+					<div class="input-group">
+						<input class="form-control" id="username" placeholder="Digite seu nick">
+						<span class="input-group-btn">
+							<input type="submit" class="btn btn-success">
+						</span>
+					</div>
+				</div>
+			</form>
+		</div>
 
-        <div class="col-md-3">
-          <h4>Usuários logados</h4>
-          <ul class="list-group" id="users"></ul>
-        </div>
+		<div class="row" id="messageArea">
+			<div class="well">
+				<h3> <span class='fa fa-comments'></span>&nbsp Sala do chat</h3>
+			</div>
 
-        <div class="col-md-9">
-          <h4>Mensagens</h4>
-          <ul class="list-group" id="chat"></ul>
-          <form id="messageForm">
-            <div class="form-group">
-              <div class="input-group">
-                <textarea
-                  type="text"
-                  class="form-control"
-                  id="message"
-                  placeholder="Digite ..."
-                ></textarea>
-                <span class="input-group-btn">
-                  <div id="audio" class="btn btn-info">
-                    Aperte para gravar Audio
-                  </div>
-                </span>
-                <span class="input-group-btn">
-                  <input type="submit" class="btn btn-default" />
-                </span>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </body>
-  <script type="text/javascript">
-    $(function() {
-      var socket = io.connect();
-      var $messageArea = $("#messageArea");
-      var $chat = $("#chat");
-      var ascii = $("#ascii");
-      var $messageForm = $("#messageForm");
-      var $message = $("#message");
-      var $userArea = $("#userArea");
-      var $userForm = $("#userForm");
-      var $username = $("#username");
-      var $users = $("#users");
+			<div class="col-md-3">
+				<h4>Usuários logados</h4>
+				<ul class="list-group" id="users"></ul>
+			</div>
 
-      function urlify(text) {
-        var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
-        return text.replace(urlRegex, function(url, b, c) {
-          var url2 = c == "www." ? "http://" + url : url;
-          return '<a href="' + url2 + '" target="_blank">' + url + "</a>";
-        });
-      }
+			<div class="col-md-9">
+				<h4>Mensagens</h4>
+				<ul class="list-group" id="chat"></ul>
+				<form id="messageForm">
+					<div class="form-group">
+						<div class="row">
+							<div class="col-md-9" style="padding-right: 0;">
+								<textarea type="text" class="form-control" id="message"
+									placeholder="Digite ..."></textarea>
+							</div>
+							<div class="col-md-3" style="padding-left: 0;">
+								<div class="btn-group" role="group">
+									<input style="margin-right: 1rem;" type="submit" class="btn btn-default btn-sm">
 
-      var constraints = { audio: true };
-      navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then(function(mediaStream) {
-          var mediaRecorder = new MediaRecorder(mediaStream);
+									<div id="audio" class="btn btn-info btn-sm">Audio</div>
 
-          mediaRecorder.onstart = function(e) {
-            this.chunks = [];
-          };
+									<input style="display: none;" type="file" id="fotoInput">
+									<label class="btn btn-sm btn-warning" for="fotoInput">Imagem</label>
 
-          mediaRecorder.ondataavailable = function(e) {
-            this.chunks.push(e.data);
-          };
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	$(function () {
+		var socket = io.connect();
+		var $messageArea = $('#messageArea');
+		var $chat = $('#chat');
+		var ascii = $('#ascii');
+		var $messageForm = $('#messageForm');
+		var $message = $('#message');
+		var $userArea = $('#userArea');
+		var $userForm = $('#userForm');
+		var $username = $('#username');
+		var $users = $('#users');
+		var $imageBox = $('#fotoInput');
 
-          mediaRecorder.onstop = function(e) {
-            var blob = new Blob(this.chunks, {
-              type: "audio/ogg; codecs=opus"
-            });
-            socket.emit("radio", blob);
-          };
+		function urlify(text) {
+			var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+			return text.replace(urlRegex, function (url, b, c) {
+				var url2 = (c == 'www.') ? 'http://' + url : url;
+				return '<a href="' + url2 + '" target="_blank">' + url + '</a>';
+			});
+		};
 
-          $("#audio")
-            .mousedown(function(e) {
-              e.preventDefault();
-              $(this).text("Gravando");
-              mediaRecorder.start();
-            })
-            .mouseup(function(e) {
-              e.preventDefault();
-              $(this).text("Aperte para gravar Audio");
-              mediaRecorder.stop();
-            });
-        });
+		$imageBox.change(function () {
+			var myFile = $(this).prop('files')[0];
+			var reader = new FileReader();
+			reader.readAsDataURL(myFile);
+			reader.onloadend = function () {
+				var base64data = reader.result;
+				socket.emit('image', base64data);
+			}
+		});
 
-      $message.keypress(function(e) {
-        if (e.which == 13 && !e.shiftKey) {
-          $messageForm.submit();
-          e.preventDefault();
-        }
-      });
+		var constraints = { audio: true };
+		navigator.mediaDevices.getUserMedia(constraints).then(function (mediaStream) {
+			var mediaRecorder = new MediaRecorder(mediaStream);
 
-      soundManager.setup({
-        url: "/",
-        debugMode: false,
-        onready: function() {
-          soundManager.createSound({
-            id: "msn",
-            url: "/notification.mp3"
-          });
-        },
+			mediaRecorder.onstart = function (e) {
+				this.chunks = [];
+			};
 
-        ontimeout: function() {
-          console.error("navegador sem suporte a emissão de sons :(");
-        }
-      });
+			mediaRecorder.ondataavailable = function (e) {
+				this.chunks.push(e.data);
+			};
 
-      $messageForm.submit(function(e) {
-        var message = $message.val().replace(/(<([^>]+)>)/gi, "");
-        e.preventDefault();
+			mediaRecorder.onstop = function (e) {
+				var blob = new Blob(this.chunks, { 'type': 'audio/ogg; codecs=opus' });
+				socket.emit('radio', blob);
+			};
 
-        socket.emit("send message", message);
-        $message.val("");
-      });
+			$("#audio")
+				.mousedown(function (e) {
+					e.preventDefault()
+					$(this).text("Gravando")
+					mediaRecorder.start();
+				})
+				.mouseup(function (e) {
+					e.preventDefault()
+					$(this).text("Audio")
+					mediaRecorder.stop()
+				});
+		});
 
-      socket.on("new message", function(data) {
-        if (data.blob == null) {
-          var username = $username.val().replace(/(<([^>]+)>)/gi, "");
-          var message = urlify(data.message);
+		$message.keypress(function (e) {
+			if (e.which == 13 && !e.shiftKey) {
+				$messageForm.submit();
+				e.preventDefault();
+			}
+		});
 
-          if (message.indexOf("[ASCII]") > -1) {
-            message = message.replace("[ASCII]", "");
-            message = "<pre>" + message + "</pre>";
-          }
+		soundManager.setup({
+			url: '/',
+			debugMode: false,
+			onready: function () {
+				soundManager.createSound({
+					id: 'msn',
+					url: '/notification.mp3'
+				});
+			},
 
-          $chat.append(
-            "<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" +
-              data.cor +
-              "'><strong>" +
-              data.username +
-              "</strong>: " +
-              message +
-              "</span></li>"
-          );
-          $("#chat li")
-            .last()
-            .addClass("active-li")
-            .focus();
-          $message.focus();
-        } else {
-          console.log("BLOB");
-          var blob = new Blob([data.blob], { type: "audio/ogg; codecs=opus" });
-          var audio = document.createElement("audio");
-          audio.src = window.URL.createObjectURL(blob);
-          audio.controls = "controls";
+			ontimeout: function () {
+				console.error('navegador sem suporte a emissão de sons :(');
+			}
+		});
 
-          var message = audio.outerHTML;
 
-          console.log(message);
+		$messageForm.submit(function (e) {
+			var message = $message.val().replace(/(<([^>]+)>)/ig, '');
+			e.preventDefault();
 
-          $chat.append(
-            "<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" +
-              data.cor +
-              "'><strong>" +
-              data.username +
-              "</strong>: " +
-              message +
-              "</span></li>"
-          );
-          $("#chat li")
-            .last()
-            .addClass("active-li")
-            .focus();
-          $message.focus();
-        }
+			socket.emit('send message', message);
+			$message.val('');
+		});
 
-        if (data.username != username) soundManager.play("msn");
-      });
+		socket.on('new message', function (data) {
+			var username = $username.val().replace(/(<([^>]+)>)/ig, '');
 
-      $userForm.submit(function(e) {
-        var username = $username.val().replace(/(<([^>]+)>)/gi, "");
-        e.preventDefault();
+			if (data.blob == null) {
+				var message = urlify(data.message);
 
-        var cores = ["default", "info", "success", "warning", "danger"];
-        var cor = cores.sort(function() {
-          return 0.5 - Math.random();
-        })[0];
+				if (message.indexOf('[ASCII]') > -1) {
+					message = message.replace('[ASCII]', '');
+					message = '<pre>' + message + '</pre>';
+				}
 
-        socket.emit("new user", { username: username, cor: cor }, function(
-          data
-        ) {
-          $userArea.hide();
-          $messageArea.show();
-        });
-      });
+				$chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
+				$("#chat li").last().addClass('active-li').focus();
+				$message.focus();
+			}
+			else {
+				if (data.tipo == 'audio') {
+					var blob = new Blob([data.blob], { 'type': 'audio/ogg; codecs=opus' });
+					var tag = document.createElement('audio');
+					tag.src = window.URL.createObjectURL(blob);
+					tag.controls = "controls";
+				}
+				else {
+					if (data.tipo == 'img') {
+						var tag = document.createElement('img');
+						tag.src = data.blob;
+						tag.classList.add('img-responsive');
+					}
+				}
 
-      socket.on("get users", function(data) {
-        var html = "";
+				var message = tag.outerHTML;
 
-        for (var i = 0; i < data.cor.length; i++)
-          html +=
-            "<li class='list-group-item list-group-item-" +
-            data.cor[i] +
-            "'>" +
-            data.username[i] +
-            "</li>";
+				console.log(message);
 
-        $users.html(html);
-      });
+				$chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
+				$("#chat li").last().addClass('active-li').focus();
+				$message.focus();
+			}
 
-      socket.on("logou", function(data) {
-        $chat.append(
-          '<li tabindex="1" class="list-group-item list-group-item-success"><span class="fa fa-sign-in"></span> <strong>' +
-            data +
-            "</strong> entrou na sala...</li>"
-        );
-        $("#chat li")
-          .last()
-          .addClass("active-li")
-          .focus();
-        $message.focus();
-      });
+			if (data.username != username)
+				soundManager.play('msn');
+		});
 
-      socket.on("saiu", function(data) {
-        $chat.append(
-          '<li tabindex="1" class="list-group-item list-group-item-danger"><span class="fa fa-sign-out"></span> <strong>' +
-            data +
-            "</strong> saiu da sala...</li>"
-        );
-        $("#chat li")
-          .last()
-          .addClass("active-li")
-          .focus();
-        $message.focus();
-      });
-    });
-  </script>
+		$userForm.submit(function (e) {
+			var username = $username.val().replace(/(<([^>]+)>)/ig, '');
+			e.preventDefault();
+
+			var cores = ["default", "info", "success", "warning", "danger"];
+			var cor = cores.sort(function () { return 0.5 - Math.random() })[0];
+
+			socket.emit('new user', { username: username, cor: cor }, function (data) {
+				$userArea.hide();
+				$messageArea.show();
+			});
+		});
+
+		socket.on('get users', function (data) {
+			var html = '';
+
+			for (var i = 0; i < data.cor.length; i++)
+				html += "<li class='list-group-item list-group-item-" + data.cor[i] + "'>" + data.username[i] + '</li>';
+
+			$users.html(html);
+		});
+
+		socket.on('logou', function (data) {
+			$chat.append('<li tabindex="1" class="list-group-item list-group-item-success"><span class="fa fa-sign-in"></span> <strong>' + data + '</strong> entrou na sala...</li>');
+			$("#chat li").last().addClass('active-li').focus();
+			$message.focus();
+		});
+
+		socket.on('saiu', function (data) {
+			$chat.append('<li tabindex="1" class="list-group-item list-group-item-danger"><span class="fa fa-sign-out"></span> <strong>' + data + '</strong> saiu da sala...</li>');
+			$("#chat li").last().addClass('active-li').focus();
+			$message.focus();
+		});
+	});
+</script>
+
 </html>
