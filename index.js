@@ -29,6 +29,8 @@ app.get('/soundmanager2.swf', function (req, res) {
 io.on('connection', function (socket) {
 	connections.push(socket);
 	writeNewConnection('c');
+  
+  updateUsernames();
 
 	socket.on('disconnect', function (data) {
 		users.splice(users.indexOf(socket.username), 1);
