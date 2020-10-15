@@ -1,261 +1,350 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie-edge" />
+    <title>Chat</title>
 
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="ie-edge">
-	<title>Chat</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.rawgit.com/m3tdesenvolvimento/5c7098abf823b94a93ff778af4383f02/raw/775b1f7de90a4297ae6df4b9f70e5b352c7923f1/theme.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <script
+      type="text/javascript"
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"
+    ></script>
+    <script type="text/javascript" src="/soundmanager2.js"></script>
+    <style type="text/css">
+      body {
+        margin: 20px;
+      }
 
-	<link rel="stylesheet"
-		href="https://cdn.rawgit.com/m3tdesenvolvimento/5c7098abf823b94a93ff778af4383f02/raw/775b1f7de90a4297ae6df4b9f70e5b352c7923f1/theme.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-	<script type="text/javascript" src="/soundmanager2.js"></script>
-	<style type="text/css">
-		body {
-			margin: 20px;
-		}
+      #messageArea {
+        display: none;
+      }
 
-		#messageArea {
-			display: none;
-		}
+      #chat {
+        height: 500px;
+        overflow-y: scroll;
+      }
+    </style>
+  </head>
 
-		#chat {
-			height: 500px;
-			overflow-y: scroll;
-		}
-	</style>
-</head>
+  <body>
+    <div class="container">
+      <div class="row" id="userArea">
+        <div class="well">
+          <h3><span class="fa fa-comments"></span>&nbsp Entrar no chat</h3>
+        </div>
 
-<body>
-	<div class="container">
-		<div class="row" id="userArea">
-			<div class="well">
-				<h3><span class='fa fa-comments'></span>&nbsp Entrar no chat</h3>
-			</div>
+        <form id="userForm">
+          <div class="form-group">
+            <div class="input-group">
+              <input
+                required
+                class="form-control"
+                id="username"
+                placeholder="Digite seu nick"
+              />
+              <span class="input-group-btn">
+                <input type="submit" class="btn btn-success" />
+              </span>
+            </div>
+          </div>
+        </form>
+      </div>
 
-			<form id="userForm">
-				<div class="form-group">
-					<div class="input-group">
-						<input class="form-control" id="username" placeholder="Digite seu nick">
-						<span class="input-group-btn">
-							<input type="submit" class="btn btn-success">
-						</span>
-					</div>
-				</div>
-			</form>
-		</div>
+      <div class="row" id="messageArea">
+        <div class="well">
+          <h3><span class="fa fa-comments"></span>&nbsp CHAT DA MASSA</h3>
+        </div>
 
-		<div class="row" id="messageArea">
-			<div class="well">
-				<h3> <span class='fa fa-comments'></span>&nbsp Sala do chat</h3>
-			</div>
+        <div class="col-md-3">
+          <h4>Usuários logados</h4>
+          <ul class="list-group" id="users"></ul>
+        </div>
 
-			<div class="col-md-3">
-				<h4>Usuários logados</h4>
-				<ul class="list-group" id="users"></ul>
-			</div>
+        <div class="col-md-9">
+          <h4>Mensagens</h4>
+          <ul class="list-group" id="chat"></ul>
+          <form id="messageForm">
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-9" style="padding-right: 0;">
+                  <textarea
+                    required
+                    type="text"
+                    class="form-control"
+                    id="message"
+                    placeholder="Digite ..."
+                  ></textarea>
+                </div>
+                <div
+                  class="col-md-3"
+                  style="padding-left: 0; padding-right: 0;"
+                >
+                  <div class="btn-group" role="group">
+                    <button
+                      style="margin-right: 1rem;"
+                      type="submit"
+                      class="btn btn-default btn-sm"
+                    >
+                      Enviar
+                    </button>
 
-			<div class="col-md-9">
-				<h4>Mensagens</h4>
-				<ul class="list-group" id="chat"></ul>
-				<form id="messageForm">
-					<div class="form-group">
-						<div class="row">
-							<div class="col-md-9" style="padding-right: 0;">
-								<textarea type="text" class="form-control" id="message"
-									placeholder="Digite ..."></textarea>
-							</div>
-							<div class="col-md-3" style="padding-left: 0;">
-								<div class="btn-group" role="group">
-									<input style="margin-right: 1rem;" type="submit" class="btn btn-default btn-sm">
+                    <div id="audio" class="btn btn-info btn-sm">
+                      Audio
+                    </div>
 
-									<div id="audio" class="btn btn-info btn-sm">Audio</div>
+                    <input
+                      style="display: none;"
+                      accept="image/x-png,image/gif,image/jpeg"
+                      type="file"
+                      id="fotoInput"
+                    />
+                    <label class="btn btn-sm btn-warning" for="fotoInput">
+                      Imagem
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script type="text/javascript">
+    $(function() {
+      var socket = io.connect();
+      var $messageArea = $("#messageArea");
+      var $chat = $("#chat");
+      var ascii = $("#ascii");
+      var $messageForm = $("#messageForm");
+      var $message = $("#message");
+      var $userArea = $("#userArea");
+      var $userForm = $("#userForm");
+      var $username = $("#username");
+      var $users = $("#users");
+      var $imageBox = $("#fotoInput");
 
-									<input style="display: none;" type="file" id="fotoInput">
-									<label class="btn btn-sm btn-warning" for="fotoInput">Imagem</label>
+      var usernameGlobal;
 
-								</div>
-							</div>
-						</div>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-</body>
-<script type="text/javascript">
-	$(function () {
-		var socket = io.connect();
-		var $messageArea = $('#messageArea');
-		var $chat = $('#chat');
-		var ascii = $('#ascii');
-		var $messageForm = $('#messageForm');
-		var $message = $('#message');
-		var $userArea = $('#userArea');
-		var $userForm = $('#userForm');
-		var $username = $('#username');
-		var $users = $('#users');
-		var $imageBox = $('#fotoInput');
+      function urlify(text) {
+        var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+        return text.replace(urlRegex, function(url, b, c) {
+          var url2 = c == "www." ? "http://" + url : url;
+          return '<a href="' + url2 + '" target="_blank">' + url + "</a>";
+        });
+      }
 
-		function urlify(text) {
-			var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
-			return text.replace(urlRegex, function (url, b, c) {
-				var url2 = (c == 'www.') ? 'http://' + url : url;
-				return '<a href="' + url2 + '" target="_blank">' + url + '</a>';
-			});
-		};
+      // SONS SETUP
+      soundManager.setup({
+        url: "/",
+        debugMode: false,
+        onready: function() {
+          soundManager.createSound({
+            id: "msn",
+            url: "/notification.mp3"
+          });
+        },
 
-		$imageBox.change(function () {
-			var myFile = $(this).prop('files')[0];
-			var reader = new FileReader();
-			reader.readAsDataURL(myFile);
-			reader.onloadend = function () {
-				var base64data = reader.result;
-				socket.emit('image', base64data);
-			}
-		});
+        ontimeout: function() {
+          console.error("navegador sem suporte a emissão de sons :(");
+        }
+      });
 
-		var constraints = { audio: true };
-		navigator.mediaDevices.getUserMedia(constraints).then(function (mediaStream) {
-			var mediaRecorder = new MediaRecorder(mediaStream);
+      navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then(function(mediaStream) {
+          var mediaRecorder = new MediaRecorder(mediaStream);
 
-			mediaRecorder.onstart = function (e) {
-				this.chunks = [];
-			};
+          mediaRecorder.onstart = function(e) {
+            this.chunks = [];
+          };
 
-			mediaRecorder.ondataavailable = function (e) {
-				this.chunks.push(e.data);
-			};
+          mediaRecorder.ondataavailable = function(e) {
+            this.chunks.push(e.data);
+          };
 
-			mediaRecorder.onstop = function (e) {
-				var blob = new Blob(this.chunks, { 'type': 'audio/ogg; codecs=opus' });
-				socket.emit('radio', blob);
-			};
+          mediaRecorder.onstop = function(e) {
+            var blob = new Blob(this.chunks, {
+              type: "audio/ogg; codecs=opus"
+            });
+            socket.emit("radio", blob);
+          };
 
-			$("#audio")
-				.mousedown(function (e) {
-					e.preventDefault()
-					$(this).text("Gravando")
-					mediaRecorder.start();
-				})
-				.mouseup(function (e) {
-					e.preventDefault()
-					$(this).text("Audio")
-					mediaRecorder.stop()
-				});
-		});
+          $("#audio")
+            .mousedown(function(e) {
+              e.preventDefault();
+              $(this).text("Gravando");
+              mediaRecorder.start();
+            })
+            .mouseup(function(e) {
+              e.preventDefault();
+              $(this).text("Audio");
+              mediaRecorder.stop();
+            });
+        });
 
-		$message.keypress(function (e) {
-			if (e.which == 13 && !e.shiftKey) {
-				$messageForm.submit();
-				e.preventDefault();
-			}
-		});
+      //EVENTOS
+      $imageBox.change(function() {
+        var myFile = $(this).prop("files")[0];
+        var reader = new FileReader();
+        reader.readAsDataURL(myFile);
+        reader.onloadend = function() {
+          var base64data = reader.result;
+          socket.emit("image", base64data);
+        };
+      });
 
-		soundManager.setup({
-			url: '/',
-			debugMode: false,
-			onready: function () {
-				soundManager.createSound({
-					id: 'msn',
-					url: '/notification.mp3'
-				});
-			},
+      $message.keypress(function(e) {
+        if (e.which == 13 && !e.shiftKey) {
+          $messageForm.submit();
+          e.preventDefault();
+        }
+      });
 
-			ontimeout: function () {
-				console.error('navegador sem suporte a emissão de sons :(');
-			}
-		});
+      $userForm.submit(function(e) {
+        usernameGlobal = $username.val().replace(/(<([^>]+)>)/gi, "");
+        e.preventDefault();
 
+        var cores = ["default", "info", "success", "warning", "danger"];
+        var cor = cores.sort(function() {
+          return 0.5 - Math.random();
+        })[0];
 
-		$messageForm.submit(function (e) {
-			var message = $message.val().replace(/(<([^>]+)>)/ig, '');
-			e.preventDefault();
+        socket.emit(
+          "new user",
+          { username: usernameGlobal, cor: cor },
+          function(data) {
+            $userArea.hide();
+            $messageArea.show();
+          }
+        );
+      });
 
-			socket.emit('send message', message);
-			$message.val('');
-		});
+      $messageForm.submit(function(e) {
+        var message = $message.val().replace(/(<([^>]+)>)/gi, "");
+        e.preventDefault();
 
-		socket.on('new message', function (data) {
-			var username = $username.val().replace(/(<([^>]+)>)/ig, '');
+        socket.emit("send message", message);
+        $message.val("");
+      });
 
-			if (data.blob == null) {
-				var message = urlify(data.message);
+      socket.on("new message", function(data) {
+        if (usernameGlobal) {
+          if (data.blob == null) {
+            var message = urlify(data.message);
 
-				if (message.indexOf('[ASCII]') > -1) {
-					message = message.replace('[ASCII]', '');
-					message = '<pre>' + message + '</pre>';
-				}
+            if (message.indexOf("[ASCII]") > -1) {
+              message = message.replace("[ASCII]", "");
+              message = "<pre>" + message + "</pre>";
+            }
 
-				$chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
-				$("#chat li").last().addClass('active-li').focus();
-				$message.focus();
-			}
-			else {
-				if (data.tipo == 'audio') {
-					var blob = new Blob([data.blob], { 'type': 'audio/ogg; codecs=opus' });
-					var tag = document.createElement('audio');
-					tag.src = window.URL.createObjectURL(blob);
-					tag.controls = "controls";
-				}
-				else {
-					if (data.tipo == 'img') {
-						var tag = document.createElement('img');
-						tag.src = data.blob;
-						tag.classList.add('img-responsive');
-					}
-				}
+            $chat.append(
+              "<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" +
+                data.cor +
+                "'><strong>" +
+                data.username +
+                "</strong>: " +
+                message +
+                "</span></li>"
+            );
+            $("#chat li")
+              .last()
+              .addClass("active-li")
+              .focus();
+            $message.focus();
+          } else {
+            if (data.tipo == "audio") {
+              var blob = new Blob([data.blob], {
+                type: "audio/ogg; codecs=opus"
+              });
+              var tag = document.createElement("audio");
+              tag.src = window.URL.createObjectURL(blob);
+              tag.controls = "controls";
+            } else {
+              if (data.tipo == "img") {
+                var tag = document.createElement("img");
+                tag.src = data.blob;
+                tag.classList.add("img-responsive");
+              }
+            }
 
-				var message = tag.outerHTML;
+            var message = tag.outerHTML;
 
-				console.log(message);
+            console.log(message);
 
-				$chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
-				$("#chat li").last().addClass('active-li').focus();
-				$message.focus();
-			}
+            $chat.append(
+              "<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" +
+                data.cor +
+                "'><strong>" +
+                data.username +
+                "</strong>: " +
+                message +
+                "</span></li>"
+            );
+            $("#chat li")
+              .last()
+              .addClass("active-li")
+              .focus();
+            $message.focus();
+          }
 
-			if (data.username != username)
-				soundManager.play('msn');
-		});
+          if (data.username != usernameGlobal) soundManager.play("msn");
+        }
+      });
 
-		$userForm.submit(function (e) {
-			var username = $username.val().replace(/(<([^>]+)>)/ig, '');
-			e.preventDefault();
+      socket.on("get users", function(data) {
+        var html = "";
 
-			var cores = ["default", "info", "success", "warning", "danger"];
-			var cor = cores.sort(function () { return 0.5 - Math.random() })[0];
+        data = Object.keys(data).forEach(item => {
+          html +=
+            "<li class='list-group-item list-group-item-" +
+            data[item].cor +
+            "'>" +
+            data[item].username +
+            "</li>";
+        });
 
-			socket.emit('new user', { username: username, cor: cor }, function (data) {
-				$userArea.hide();
-				$messageArea.show();
-			});
-		});
+        $users.html(html);
+      });
 
-		socket.on('get users', function (data) {
-			var html = '';
+      socket.on("logou", function(data) {
+        $chat.append(
+          '<li tabindex="1" class="list-group-item list-group-item-success"><span class="fa fa-sign-in"></span> <strong>' +
+            data +
+            "</strong> entrou na sala...</li>"
+        );
+        $("#chat li")
+          .last()
+          .addClass("active-li")
+          .focus();
+        $message.focus();
+      });
 
-			for (var i = 0; i < data.cor.length; i++)
-				html += "<li class='list-group-item list-group-item-" + data.cor[i] + "'>" + data.username[i] + '</li>';
-
-			$users.html(html);
-		});
-
-		socket.on('logou', function (data) {
-			$chat.append('<li tabindex="1" class="list-group-item list-group-item-success"><span class="fa fa-sign-in"></span> <strong>' + data + '</strong> entrou na sala...</li>');
-			$("#chat li").last().addClass('active-li').focus();
-			$message.focus();
-		});
-
-		socket.on('saiu', function (data) {
-			$chat.append('<li tabindex="1" class="list-group-item list-group-item-danger"><span class="fa fa-sign-out"></span> <strong>' + data + '</strong> saiu da sala...</li>');
-			$("#chat li").last().addClass('active-li').focus();
-			$message.focus();
-		});
-	});
-</script>
-
+      socket.on("saiu", function(data) {
+        $chat.append(
+          '<li tabindex="1" class="list-group-item list-group-item-danger"><span class="fa fa-sign-out"></span> <strong>' +
+            data +
+            "</strong> saiu da sala...</li>"
+        );
+        $("#chat li")
+          .last()
+          .addClass("active-li")
+          .focus();
+        $message.focus();
+      });
+    });
+  </script>
 </html>

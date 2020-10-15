@@ -3,8 +3,7 @@ var http = require('http').createServer(app);
 var io = require('socket.io').listen(http);
 
 connections = [];
-users = [];
-cores = [];
+users = {};
 
 app.get('/', function (req, res) {
 	res.sendFile(__dirname + '/public/index.html');
@@ -29,17 +28,14 @@ app.get('/soundmanager2.swf', function (req, res) {
 io.on('connection', function (socket) {
 	connections.push(socket);
 	writeNewConnection('c');
-  
-  updateUsernames();
 
 	socket.on('disconnect', function (data) {
-		users.splice(users.indexOf(socket.username), 1);
-		cores.splice(cores.indexOf(socket.cor), 1);
-		updateUsernames();
-		io.emit('saiu', socket.username);
-
+		delete users[socket.id];
 		connections.splice(connections.indexOf(socket), 1);
 
+		io.emit('saiu', socket.username);
+		
+		updateUsernames();
 		writeNewConnection('d');
 	});
 
@@ -52,8 +48,8 @@ io.on('connection', function (socket) {
 
 		socket.username = data.username;
 		socket.cor = data.cor;
-		users.push(socket.username);
-		cores.push(socket.cor);
+
+		users[socket.id] = { username: socket.username, cor: socket.cor };
 
 		io.emit('logou', socket.username);
 
@@ -69,7 +65,7 @@ io.on('connection', function (socket) {
 	});
 
 	function updateUsernames() {
-		io.emit('get users', { username: users, cor: cores });
+		io.emit('get users', users);
 	};
 
 	function writeNewConnection(estado) {
@@ -86,7 +82,6 @@ io.on('connection', function (socket) {
 		else
 			console.log('' + stringEstado, connections.length, 'sockets.');
 	}
-
 });
 
 http.listen(3000, function () {
