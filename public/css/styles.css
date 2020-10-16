@@ -1,0 +1,12 @@
+body {
+    margin: 20px;
+}
+
+#messageArea {
+    display: none;
+}
+
+#chat {
+    height: 500px;
+    overflow-y: scroll;
+}

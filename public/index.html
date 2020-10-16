@@ -5,32 +5,16 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie-edge">
+
 	<title>Chat da Massa - Entrar</title>
 
-	<link rel="stylesheet"
-		href="https://cdn.rawgit.com/m3tdesenvolvimento/5c7098abf823b94a93ff778af4383f02/raw/775b1f7de90a4297ae6df4b9f70e5b352c7923f1/theme.min.css">
+	<link rel="stylesheet" href="./css/theme.min.css">
+	<link rel="stylesheet" href="./css/styles.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-	<script type="text/javascript" src="/soundmanager2.js"></script>
-	<style type="text/css">
-		body {
-			margin: 20px;
-		}
-
-		#messageArea {
-			display: none;
-		}
-
-		#chat {
-			height: 500px;
-			overflow-y: scroll;
-		}
-	</style>
 </head>
 
 <body>
-	<div class="container">
+	<div class="container-fluid">
 		<div class="row" id="userArea">
 			<div class="well">
 				<h3><span class='fa fa-comments'></span>&nbsp Entrar no chat</h3>
@@ -50,7 +34,9 @@
 
 		<div class="row" id="messageArea">
 			<div class="well">
-				<h3> <span class='fa fa-comments'></span>&nbsp CHAT DA MASSA</h3>
+				<h3>
+					<span class='fa fa-comments'></span>&nbsp CHAT DA MASSA
+				</h3>
 			</div>
 
 			<div class="col-md-3">
@@ -78,7 +64,8 @@
 										Audio
 									</div>
 
-									<input style="display: none;" accept="image/x-png,image/gif,image/jpeg" type="file" id="fotoInput">
+									<input style="display: none;" accept="image/x-png,image/gif,image/jpeg" type="file"
+										id="fotoInput">
 									<label class="btn btn-sm btn-warning" for="fotoInput">
 										Imagem
 									</label>
@@ -91,187 +78,12 @@
 			</div>
 		</div>
 	</div>
+
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+	<script type="text/javascript" src="./assets/soundmanager2.js"></script>
+	<script type="text/javascript" src="./js/index.js"></script>
 </body>
-<script type="text/javascript">
-	$(function () {
-		var socket = io.connect();
 
-		var $messageArea = $('#messageArea');
-		var $chat = $('#chat');
-		var ascii = $('#ascii');
-		var $messageForm = $('#messageForm');
-		var $message = $('#message');
-		var $userArea = $('#userArea');
-		var $userForm = $('#userForm');
-		var $username = $('#username');
-		var $users = $('#users');
-		var $imageBox = $('#fotoInput');
-
-		var usernameGlobal;
-		var hashSala = window.location.hash.replace('#', '');
-
-		function urlify(text) {
-			var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
-			return text.replace(urlRegex, function (url, b, c) {
-				var url2 = (c == 'www.') ? 'http://' + url : url;
-				return '<a href="' + url2 + '" target="_blank">' + url + '</a>';
-			});
-		};
-
-		// SONS SETUP
-		soundManager.setup({
-			url: '/',
-			debugMode: false,
-			onready: function () {
-				soundManager.createSound({
-					id: 'msn',
-					url: '/notification.mp3'
-				});
-			},
-
-			ontimeout: function () {
-				console.error('navegador sem suporte a emissão de sons :(');
-			}
-		});
-
-		navigator.mediaDevices.getUserMedia({ audio: true }).then(function (mediaStream) {
-			var mediaRecorder = new MediaRecorder(mediaStream);
-
-			mediaRecorder.onstart = function (e) {
-				this.chunks = [];
-			};
-
-			mediaRecorder.ondataavailable = function (e) {
-				this.chunks.push(e.data);
-			};
-
-			mediaRecorder.onstop = function (e) {
-				var blob = new Blob(this.chunks, { 'type': 'audio/ogg; codecs=opus' });
-				socket.emit('radio', blob);
-			};
-
-			$("#audio")
-				.mousedown(function (e) {
-					e.preventDefault()
-					$(this).text("Gravando")
-					mediaRecorder.start();
-				})
-				.mouseup(function (e) {
-					e.preventDefault()
-					$(this).text("Audio")
-					mediaRecorder.stop()
-				});
-		});
-
-		//EVENTOS
-		$imageBox.change(function () {
-			var myFile = $(this).prop('files')[0];
-			var reader = new FileReader();
-			reader.readAsDataURL(myFile);
-			reader.onloadend = function () {
-				var base64data = reader.result;
-				socket.emit('image', base64data);
-			}
-		});
-
-		$message.keypress(function (e) {
-			if (e.which == 13 && !e.shiftKey) {
-				$messageForm.submit();
-				e.preventDefault();
-			}
-		});
-
-		$userForm.submit(function (e) {
-			usernameGlobal = $username.val().replace(/(<([^>]+)>)/ig, '');
-			e.preventDefault();
-
-			var cores = ["default", "info", "success", "warning", "danger"];
-			var cor = cores.sort(function () { return 0.5 - Math.random() })[0];
-
-			socket.emit('new user', { username: usernameGlobal, cor: cor, salaId: hashSala }, function (data, id) {
-				$userArea.hide();
-				$messageArea.show();
-
-				hashSala = id;
-				window.location.hash = '#' + hashSala;
-				window.document.title = 'Chat da Massa - Sala ' + hashSala;
-			});
-		});
-
-		$messageForm.submit(function (e) {
-			var message = $message.val().replace(/(<([^>]+)>)/ig, '');
-			e.preventDefault();
-
-			socket.emit('send message', message);
-			$message.val('');
-		});
-
-		socket.on('new message', function (data) {
-			if (usernameGlobal) {
-				if (data.blob == null) {
-					var message = urlify(data.message);
-
-					if (message.indexOf('[ASCII]') > -1) {
-						message = message.replace('[ASCII]', '');
-						message = '<pre>' + message + '</pre>';
-					}
-
-					$chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
-					$("#chat li").last().addClass('active-li').focus();
-					$message.focus();
-				}
-				else {
-					if (data.tipo == 'audio') {
-						var blob = new Blob([data.blob], { 'type': 'audio/ogg; codecs=opus' });
-						var tag = document.createElement('audio');
-						tag.src = window.URL.createObjectURL(blob);
-						tag.controls = "controls";
-					}
-					else {
-						if (data.tipo == 'img') {
-							var tag = document.createElement('img');
-							tag.src = data.blob;
-							tag.classList.add('img-responsive');
-						}
-					}
-
-					var message = tag.outerHTML;
-
-					console.log(message);
-
-					$chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
-					$("#chat li").last().addClass('active-li').focus();
-					$message.focus();
-				}
-
-				if (data.username != usernameGlobal)
-					soundManager.play('msn');
-			}
-		});
-
-		socket.on('get users', function (data) {
-			console.log(data);
-			var html = ''
-
-			data.forEach(item => {
-				html += "<li class='list-group-item list-group-item-" + item.cor + "'>" + item.username + '</li>';
-			});
-
-			$users.html(html);
-		});
-
-		socket.on('logou', function (data) {
-			$chat.append('<li tabindex="1" class="list-group-item list-group-item-success"><span class="fa fa-sign-in"></span> <strong>' + data + '</strong> entrou na sala...</li>');
-			$("#chat li").last().addClass('active-li').focus();
-			$message.focus();
-		});
-
-		socket.on('saiu', function (data) {
-			$chat.append('<li tabindex="1" class="list-group-item list-group-item-danger"><span class="fa fa-sign-out"></span> <strong>' + data + '</strong> saiu da sala...</li>');
-			$("#chat li").last().addClass('active-li').focus();
-			$message.focus();
-		});
-	});
-</script>
 
 </html>

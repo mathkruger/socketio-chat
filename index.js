@@ -1,29 +1,12 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io').listen(http);
 
 connections = [];
 users = {};
 
-app.get('/', function (req, res) {
-	res.sendFile(__dirname + '/public/index.html');
-});
-
-app.get('/notification.mp3', function (req, res) {
-	res.sendFile(__dirname + '/public/notification.mp3');
-});
-
-app.get('/soundmanager2.js', function (req, res) {
-	res.sendFile(__dirname + '/public/soundmanager2.js');
-});
-
-app.get('/soundmanager2_debug.swf', function (req, res) {
-	res.sendFile(__dirname + '/public/soundmanager2_debug.swf');
-});
-
-app.get('/soundmanager2.swf', function (req, res) {
-	res.sendFile(__dirname + '/public/soundmanager2.swf');
-});
+app.use(express.static('public'));
 
 io.on('connection', function (socket) {
 	connections.push(socket);
