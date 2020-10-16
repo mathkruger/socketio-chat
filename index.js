@@ -3,8 +3,7 @@ var http = require('http').createServer(app);
 var io = require('socket.io').listen(http);
 
 connections = [];
-users = [];
-cores = [];
+users = {};
 
 app.get('/', function (req, res) {
 	res.sendFile(__dirname + '/public/index.html');
@@ -31,43 +30,53 @@ io.on('connection', function (socket) {
 	writeNewConnection('c');
 
 	socket.on('disconnect', function (data) {
-		users.splice(users.indexOf(socket.username), 1);
-		cores.splice(cores.indexOf(socket.cor), 1);
-		updateUsernames();
-		io.emit('saiu', socket.username);
-
+		delete users[socket.id];
 		connections.splice(connections.indexOf(socket), 1);
 
+		io.to(socket.salaId).emit('saiu', socket.username);
+
+		updateUsernames();
 		writeNewConnection('d');
 	});
 
 	socket.on('send message', function (data) {
-		io.emit('new message', { message: data, username: socket.username, cor: socket.cor });
+		io.to(socket.salaId).emit('new message', { message: data, username: socket.username, cor: socket.cor });
 	});
 
 	socket.on('new user', function (data, callback) {
-		callback(true);
+		data.salaId = data.salaId ? data.salaId : makeid(6);
 
 		socket.username = data.username;
 		socket.cor = data.cor;
-		users.push(socket.username);
-		cores.push(socket.cor);
+		socket.salaId = data.salaId;
 
-		io.emit('logou', socket.username);
-
+		users[socket.id] = { username: socket.username, cor: socket.cor, salaId: data.salaId };
+		
+		socket.join(socket.salaId);
+		io.to(socket.salaId).emit('logou', socket.username);
+		
 		updateUsernames();
+		callback(true, socket.salaId);
 	});
 
 	socket.on('radio', function (blob) {
-		io.emit('new message', { username: socket.username, cor: socket.cor, blob: blob, tipo: 'audio' });
+		io.to(socket.salaId).emit('new message', { username: socket.username, cor: socket.cor, blob: blob, tipo: 'audio' });
 	});
 
 	socket.on('image', function (blob) {
-		io.emit('new message', { username: socket.username, cor: socket.cor, blob: blob, tipo: 'img' });
+		io.to(socket.salaId).emit('new message', { username: socket.username, cor: socket.cor, blob: blob, tipo: 'img' });
 	});
 
 	function updateUsernames() {
-		io.emit('get users', { username: users, cor: cores });
+		var usersDaSala = [];
+
+		Object.keys(users).forEach(id => {
+			if(users[id].salaId == socket.salaId) {
+				usersDaSala.push(users[id]);
+			}
+		});
+
+		io.to(socket.salaId).emit('get users', usersDaSala);
 	};
 
 	function writeNewConnection(estado) {
@@ -84,8 +93,17 @@ io.on('connection', function (socket) {
 		else
 			console.log('' + stringEstado, connections.length, 'sockets.');
 	}
-
 });
+
+function makeid(length = 4) {
+	var result = '';
+	var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	var charactersLength = characters.length;
+	for (var i = 0; i < length; i++) {
+		result += characters.charAt(Math.floor(Math.random() * charactersLength));
+	}
+	return result;
+}
 
 http.listen(1232, function () {
 	console.log('Chat: rodando na porta 3000...');
