@@ -88,7 +88,7 @@ function makeid(length = 4) {
 	return result;
 }
 
-http.listen(1232, function () {
+http.listen(3000, function () {
 	console.log('Chat: rodando na porta 3000...');
 	console.log('acesse http://localhost:3000');
 });
