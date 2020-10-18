@@ -17,16 +17,56 @@
 	<div class="container-fluid">
 		<div class="row" id="userArea">
 			<div class="well">
-				<h3><span class='fa fa-comments'></span>&nbsp Entrar no chat</h3>
+				<h3><span class='fa fa-comments'></span>&nbsp CHAT DA MASSA - Entrar</h3>
 			</div>
 
 			<form id="userForm">
-				<div class="form-group">
-					<div class="input-group">
+				<div class="row">
+					<div class="col-md-9">
+						<label>Nome de usuário</label>
 						<input required class="form-control" id="username" placeholder="Digite seu nick">
-						<span class="input-group-btn">
-							<input type="submit" class="btn btn-success">
-						</span>
+					</div>
+
+					<div class="col-md-3">
+						<label>Cor do nome</label>
+						<select class="form-control" id="corUsuario">
+							<option selected value="0">Aleatória</option>
+							<option value="default">
+								<span class="text-default">Cor padrão</span>
+							</option>
+							<option value="info">
+								<span class="text-info">Azul</span>
+							</option>
+							<option value="success">
+								<span class="text-success">Verde</span>
+							</option>
+							<option value="warning">
+								<span class="text-warning">Amarelo</span>
+							</option>
+							<option value="danger">
+								<span class="text-danger">Vermelho</span>
+							</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="row" style="margin-top: 2rem;">
+					<div class="col-md-6">
+						<label>Id da sala</label>
+						<input class="form-control" id="salaId" placeholder="(Deixe em branco para criar uma sala nova com Id aleatório)">
+					</div>
+
+					<div class="col-md-6">
+						<label>Senha da sala</label>
+						<input type="password" class="form-control" id="salaSenha" placeholder="(Deixe em branco para criar uma sala pública)">
+					</div>
+				</div>
+
+				<div class="row" style="margin-top: 2rem;">
+					<div class="col-md-3">
+						<button type="submit" class="btn btn-success">
+							Entrar na sala
+						</button>
 					</div>
 				</div>
 			</form>
@@ -35,7 +75,7 @@
 		<div class="row" id="messageArea">
 			<div class="well">
 				<h3>
-					<span class='fa fa-comments'></span>&nbsp CHAT DA MASSA
+					<span class='fa fa-comments'></span>&nbsp CHAT DA MASSA - Sala "<span id="nomeSala"></span>"
 				</h3>
 			</div>
 

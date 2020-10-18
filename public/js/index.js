@@ -7,12 +7,19 @@ $(function () {
     var $message = $('#message');
     var $userArea = $('#userArea');
     var $userForm = $('#userForm');
+
     var $username = $('#username');
+    var $salaId = $('#salaId');
+    var $salaSenha = $('#salaSenha');
+    var $corUsuario = $('#corUsuario');
+
     var $users = $('#users');
     var $imageBox = $('#fotoInput');
 
     var usernameGlobal;
     var hashSala = window.location.hash.replace('#', '');
+
+    $salaId.val(hashSala);
 
     function urlify(text) {
         var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
@@ -86,19 +93,34 @@ $(function () {
     });
 
     $userForm.submit(function (e) {
-        usernameGlobal = $username.val().replace(/(<([^>]+)>)/ig, '');
         e.preventDefault();
+        
+        usernameGlobal = $username.val().replace(/(<([^>]+)>)/ig, '');
 
-        var cores = ["default", "info", "success", "warning", "danger"];
-        var cor = cores.sort(function () { return 0.5 - Math.random() })[0];
+        if($corUsuario.val() == 0) {
+            var cores = ["default", "info", "success", "warning", "danger"];
+            var cor = cores.sort(function () { return 0.5 - Math.random() })[0];
+        }
+        else {
+            var cor = $corUsuario.val();
+        }
 
-        socket.emit('new user', { username: usernameGlobal, cor: cor, salaId: hashSala }, function (data, id) {
-            $userArea.hide();
-            $messageArea.show();
+        var salaId = $salaId.val() || null;
+        var salaSenha = $salaSenha.val();
 
-            hashSala = id;
-            window.location.hash = '#' + hashSala;
-            window.document.title = 'Chat da Massa - Sala ' + hashSala;
+        socket.emit('new user', { username: usernameGlobal, cor: cor, salaId: salaId, salaSenha: salaSenha }, function (data, id) {
+            if(data == true) {
+                $userArea.hide();
+                $messageArea.show();
+    
+                salaId = id;
+                document.getElementById("nomeSala").innerText = salaId;
+                window.location.hash = '#' + salaId;
+                window.document.title = 'Chat da Massa - Sala ' + salaId;
+            }
+            else {
+                alert(id);
+            }
         });
     });
 
