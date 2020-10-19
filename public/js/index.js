@@ -29,6 +29,47 @@ $(function () {
         });
     };
 
+    function printMessage(data, som = true) {
+        if (data.blob == null) {
+            var message = urlify(data.message);
+
+            if (message.indexOf('[ASCII]') > -1) {
+                message = message.replace('[ASCII]', '');
+                message = '<pre>' + message + '</pre>';
+            }
+
+            $chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
+            $("#chat li").last().addClass('active-li').focus();
+            $message.focus();
+        }
+        else {
+            if (data.tipo == 'audio') {
+                var blob = new Blob([data.blob], { 'type': 'audio/ogg; codecs=opus' });
+                var tag = document.createElement('audio');
+                tag.src = window.URL.createObjectURL(blob);
+                tag.controls = "controls";
+            }
+            else {
+                if (data.tipo == 'img') {
+                    var tag = document.createElement('img');
+                    tag.src = data.blob;
+                    tag.classList.add('img-responsive');
+                }
+            }
+
+            var message = tag.outerHTML;
+
+            console.log(message);
+
+            $chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
+            $("#chat li").last().addClass('active-li').focus();
+            $message.focus();
+        }
+
+        if (data.username != usernameGlobal && som)
+            soundManager.play('msn');
+    }
+
     // SONS SETUP
     soundManager.setup({
         url: '/',
@@ -108,7 +149,7 @@ $(function () {
         var salaId = $salaId.val() || null;
         var salaSenha = $salaSenha.val();
 
-        socket.emit('new user', { username: usernameGlobal, cor: cor, salaId: salaId, salaSenha: salaSenha }, function (data, id) {
+        socket.emit('new user', { username: usernameGlobal, cor: cor, salaId: salaId, salaSenha: salaSenha }, function (data, id, mensagens) {
             if(data == true) {
                 $userArea.hide();
                 $messageArea.show();
@@ -117,6 +158,10 @@ $(function () {
                 document.getElementById("nomeSala").innerText = salaId;
                 window.location.hash = '#' + salaId;
                 window.document.title = 'Chat da Massa - Sala ' + salaId;
+
+                mensagens.forEach(item => {
+                    printMessage(item, false);
+                });
             }
             else {
                 alert(id);
@@ -134,44 +179,7 @@ $(function () {
 
     socket.on('new message', function (data) {
         if (usernameGlobal) {
-            if (data.blob == null) {
-                var message = urlify(data.message);
-
-                if (message.indexOf('[ASCII]') > -1) {
-                    message = message.replace('[ASCII]', '');
-                    message = '<pre>' + message + '</pre>';
-                }
-
-                $chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
-                $("#chat li").last().addClass('active-li').focus();
-                $message.focus();
-            }
-            else {
-                if (data.tipo == 'audio') {
-                    var blob = new Blob([data.blob], { 'type': 'audio/ogg; codecs=opus' });
-                    var tag = document.createElement('audio');
-                    tag.src = window.URL.createObjectURL(blob);
-                    tag.controls = "controls";
-                }
-                else {
-                    if (data.tipo == 'img') {
-                        var tag = document.createElement('img');
-                        tag.src = data.blob;
-                        tag.classList.add('img-responsive');
-                    }
-                }
-
-                var message = tag.outerHTML;
-
-                console.log(message);
-
-                $chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
-                $("#chat li").last().addClass('active-li').focus();
-                $message.focus();
-            }
-
-            if (data.username != usernameGlobal)
-                soundManager.play('msn');
+            printMessage(data);
         }
     });
 

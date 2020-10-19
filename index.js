@@ -17,10 +17,10 @@ io.on('connection', function (socket) {
 		data.salaId = data.salaId ? data.salaId : makeid(6);
 		
 		if(getRoom(data.salaId)) {
-			var room =getRoom(data.salaId);
+			var room = getRoom(data.salaId);
 		}
 		else {
-			var room = { salaId: data.salaId, salaSenha: data.salaSenha };
+			var room = { salaId: data.salaId, salaSenha: data.salaSenha, messages: [] };
 			rooms[data.salaId] = room;
 		}
 
@@ -38,7 +38,7 @@ io.on('connection', function (socket) {
 			io.to(socket.salaId).emit('logou', socket.username);
 			
 			updateUsernames();
-			callback(true, socket.salaId);
+			callback(true, socket.salaId, room.messages);
 		}
 	});
 
@@ -58,16 +58,30 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('send message', function (data) {
-		io.to(socket.salaId).emit('new message', { message: data, username: socket.username, cor: socket.cor });
+		sendMessage(null, data)
 	});
 
 	socket.on('radio', function (blob) {
-		io.to(socket.salaId).emit('new message', { username: socket.username, cor: socket.cor, blob: blob, tipo: 'audio' });
+		sendMessage('audio', blob);
 	});
 
 	socket.on('image', function (blob) {
-		io.to(socket.salaId).emit('new message', { username: socket.username, cor: socket.cor, blob: blob, tipo: 'img' });
+		sendMessage('img', blob);
 	});
+
+	function sendMessage(tipo = null, conteudo) {
+		var aux = { username: socket.username, cor: socket.cor, tipo: tipo };
+
+		if(tipo == null) {
+			aux.message = conteudo;
+		}
+		else {
+			aux.blob = conteudo;
+		}
+
+		rooms[socket.salaId].messages.push(aux);
+		io.to(socket.salaId).emit('new message', aux);
+	}
 
 	function updateUsernames() {
 		io.to(socket.salaId).emit('get users', getUserFromRoom(socket.salaId));
@@ -86,7 +100,6 @@ io.on('connection', function (socket) {
 	}
 
 	function getRoom(salaId) {
-		console.log(rooms);
 		return rooms[salaId];
 	}
 
