@@ -1,25 +1,36 @@
-$(function () {
+document.addEventListener("DOMContentLoaded", function (event) {
+    Notification.requestPermission();
     var socket = io.connect();
 
-    var $messageArea = $('#messageArea');
-    var $chat = $('#chat');
-    var $messageForm = $('#messageForm');
-    var $message = $('#message');
-    var $userArea = $('#userArea');
-    var $userForm = $('#userForm');
+    var $messageArea = document.querySelector('#messageArea');
+    var $chat = document.querySelector('#chat');
+    var $messageForm = document.querySelector('#messageForm');
+    var $message = document.querySelector('#message');
+    var $userArea = document.querySelector('#userArea');
+    var $userForm = document.querySelector('#userForm');
 
-    var $username = $('#username');
-    var $salaId = $('#salaId');
-    var $salaSenha = $('#salaSenha');
-    var $corUsuario = $('#corUsuario');
+    var $username = document.querySelector('#username');
+    var $salaId = document.querySelector('#salaId');
+    var $salaSenha = document.querySelector('#salaSenha');
+    var $corUsuario = document.querySelector('#corUsuario');
 
-    var $users = $('#users');
-    var $imageBox = $('#fotoInput');
+    var $users = document.querySelector('#users');
+    var $imageBox = document.querySelector('#fotoInput');
+
+    var $notificacoes = document.querySelector("#notificacoes");
+    var $som = document.querySelector("#som");
+
+    var $som_notificacao = document.querySelector("#som_notificacao");
+
+    $notificacoes.checked = window.localStorage.getItem('config_notify') == 'true' ? true : false;
+    $som.checked = window.localStorage.getItem('config_sound') == 'true' ? true : false;
 
     var usernameGlobal;
     var hashSala = window.location.hash.replace('#', '');
 
-    $salaId.val(hashSala);
+    $salaId.value = hashSala;
+
+    configuracaoGravacaoDeAudio()
 
     function urlify(text) {
         var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
@@ -38,9 +49,8 @@ $(function () {
                 message = '<pre>' + message + '</pre>';
             }
 
-            $chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
-            $("#chat li").last().addClass('active-li').focus();
-            $message.focus();
+            $chat.innerHTML += "<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>';
+            focarUltimaMensagem()
         }
         else {
             if (data.tipo == 'audio') {
@@ -59,65 +69,75 @@ $(function () {
 
             var message = tag.outerHTML;
 
-            console.log(message);
-
-            $chat.append("<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>');
-            $("#chat li").last().addClass('active-li').focus();
-            $message.focus();
+            $chat.innerHTML += "<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>';
+            focarUltimaMensagem()
         }
 
-        if (data.username != usernameGlobal && som)
-            soundManager.play('msn');
+        if (data.username != usernameGlobal && som) {
+            console.log($som.checked)
+            if ($som.checked == true) {
+                $som_notificacao.play();
+            }
+
+            console.log($notificacoes.checked)
+            if ($notificacoes.checked == true) {
+                spawnNotification(data.username + ': ' + (data.blob ? (data.tipo == 'audio' ? 'Gravou um áudio' : 'Enviou uma imagem') : data.message), data.blob, 'Chat da Massa - Sala ' + hashSala);
+            }
+        }
     }
 
-    // SONS SETUP
-    soundManager.setup({
-        url: '/',
-        debugMode: false,
-        onready: function () {
-            soundManager.createSound({
-                id: 'msn',
-                url: '../assets/notification.mp3'
-            });
-        },
+    function spawnNotification(corpo, icone, titulo) {
+        Notification.requestPermission();
 
-        ontimeout: function () {
-            console.error('navegador sem suporte a emissão de sons :(');
+        var opcoes = {
+            body: corpo,
+            icon: icone
         }
-    });
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (mediaStream) {
-        var mediaRecorder = new MediaRecorder(mediaStream);
+        var n = new Notification(titulo, opcoes);
+    }
 
-        mediaRecorder.onstart = function (e) {
-            this.chunks = [];
-        };
+    function focarUltimaMensagem() {
+        document.querySelector("#chat li:last-child").classList.add('active-li');
+        document.querySelector("#chat li:last-child").focus = true;
+        $message.focus = true;
+    }
 
-        mediaRecorder.ondataavailable = function (e) {
-            this.chunks.push(e.data);
-        };
+    function configuracaoGravacaoDeAudio() {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function (mediaStream) {
+            var mediaRecorder = new MediaRecorder(mediaStream);
 
-        mediaRecorder.onstop = function (e) {
-            var blob = new Blob(this.chunks, { 'type': 'audio/ogg; codecs=opus' });
-            socket.emit('radio', blob);
-        };
+            mediaRecorder.onstart = function (e) {
+                this.chunks = [];
+            };
 
-        $("#audio")
-            .mousedown(function (e) {
+            mediaRecorder.ondataavailable = function (e) {
+                this.chunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = function (e) {
+                var blob = new Blob(this.chunks, { 'type': 'audio/ogg; codecs=opus' });
+                socket.emit('radio', blob);
+            };
+
+            var audioButton = document.querySelector("#audio");
+            audioButton.addEventListener('mousedown', function (e) {
                 e.preventDefault()
-                $(this).text("Gravando")
+                audioButton.innerHTML = "Gravando";
                 mediaRecorder.start();
-            })
-            .mouseup(function (e) {
-                e.preventDefault()
-                $(this).text("Audio")
-                mediaRecorder.stop()
             });
-    });
+
+            audioButton.addEventListener('mouseup', function (e) {
+                e.preventDefault()
+                audioButton.innerHTML = "Audio";
+                mediaRecorder.stop();
+            });
+        });
+    }
 
     //EVENTOS
-    $imageBox.change(function () {
-        var myFile = $(this).prop('files')[0];
+    $imageBox.addEventListener('change', function () {
+        var myFile = $imageBox.files[0];
         var reader = new FileReader();
         reader.readAsDataURL(myFile);
         reader.onloadend = function () {
@@ -126,34 +146,34 @@ $(function () {
         }
     });
 
-    $message.keypress(function (e) {
-        if (e.which == 13 && !e.shiftKey) {
-            $messageForm.submit();
+    $message.addEventListener('keyup', function (e) {
+        if (e.keyCode == 13 && !e.shiftKey) {
+            document.querySelector("#enviar_mensagem").click();
             e.preventDefault();
         }
     });
 
-    $userForm.submit(function (e) {
+    $userForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        
-        usernameGlobal = $username.val().replace(/(<([^>]+)>)/ig, '');
 
-        if($corUsuario.val() == 0) {
+        usernameGlobal = $username.value.replace(/(<([^>]+)>)/ig, '');
+
+        if ($corUsuario.value == 0) {
             var cores = ["default", "info", "success", "warning", "danger"];
             var cor = cores.sort(function () { return 0.5 - Math.random() })[0];
         }
         else {
-            var cor = $corUsuario.val();
+            var cor = $corUsuario.value;
         }
 
-        var salaId = $salaId.val() || null;
-        var salaSenha = $salaSenha.val();
+        var salaId = $salaId.value || null;
+        var salaSenha = $salaSenha.value;
 
         socket.emit('new user', { username: usernameGlobal, cor: cor, salaId: salaId, salaSenha: salaSenha }, function (data, id, mensagens) {
-            if(data == true) {
-                $userArea.hide();
-                $messageArea.show();
-    
+            if (data == true) {
+                $userArea.style.display = 'none';
+                $messageArea.style.display = 'block';
+
                 salaId = id;
                 document.getElementById("nomeSala").innerText = salaId;
                 window.location.hash = '#' + salaId;
@@ -167,16 +187,27 @@ $(function () {
                 alert(id);
             }
         });
+
+        return false;
     });
 
-    $messageForm.submit(function (e) {
-        var message = $message.val().replace(/(<([^>]+)>)/ig, '');
+    $messageForm.addEventListener('submit', function (e) {
+        var message = $message.value.replace(/(<([^>]+)>)/ig, '');
         e.preventDefault();
 
         socket.emit('send message', message);
-        $message.val('');
+        $message.value = '';
     });
 
+    $notificacoes.addEventListener('change', function (e) {
+        window.localStorage.setItem('config_notify', $notificacoes.checked == true ? true : null);
+    });
+
+    $som.addEventListener('change', function (e) {
+        window.localStorage.setItem('config_sound', $som.checked == true ? true : null);
+    });
+
+    // Eventos de Socket
     socket.on('new message', function (data) {
         if (usernameGlobal) {
             printMessage(data);
@@ -184,25 +215,22 @@ $(function () {
     });
 
     socket.on('get users', function (data) {
-        console.log(data);
         var html = ''
 
         data.forEach(item => {
             html += "<li class='list-group-item list-group-item-" + item.cor + "'>" + item.username + '</li>';
         });
 
-        $users.html(html);
+        $users.innerHTML = html;
     });
 
     socket.on('logou', function (data) {
-        $chat.append('<li tabindex="1" class="list-group-item list-group-item-success"><span class="fa fa-sign-in"></span> <strong>' + data + '</strong> entrou na sala...</li>');
-        $("#chat li").last().addClass('active-li').focus();
-        $message.focus();
+        $chat.innerHTML += '<li tabindex="1" class="list-group-item list-group-item-success"><span class="fa fa-sign-in"></span> <strong>' + data + '</strong> entrou na sala...</li>';
+        focarUltimaMensagem();
     });
 
     socket.on('saiu', function (data) {
-        $chat.append('<li tabindex="1" class="list-group-item list-group-item-danger"><span class="fa fa-sign-out"></span> <strong>' + data + '</strong> saiu da sala...</li>');
-        $("#chat li").last().addClass('active-li').focus();
-        $message.focus();
+        $chat.innerHTML += '<li tabindex="1" class="list-group-item list-group-item-danger"><span class="fa fa-sign-out"></span> <strong>' + data + '</strong> saiu da sala...</li>';
+        focarUltimaMensagem();
     });
 });

@@ -53,12 +53,14 @@
 				<div class="row" style="margin-top: 2rem;">
 					<div class="col-md-6">
 						<label>Id da sala</label>
-						<input class="form-control" id="salaId" placeholder="(Deixe em branco para criar uma sala nova com Id aleatório)">
+						<input class="form-control" id="salaId"
+							placeholder="(Deixe em branco para criar uma sala nova com Id aleatório)">
 					</div>
 
 					<div class="col-md-6">
 						<label>Senha da sala</label>
-						<input type="password" class="form-control" id="salaSenha" placeholder="(Deixe em branco para criar uma sala pública)">
+						<input type="password" class="form-control" id="salaSenha"
+							placeholder="(Deixe em branco para criar uma sala pública)">
 					</div>
 				</div>
 
@@ -96,7 +98,7 @@
 							</div>
 							<div class="col-md-3" style="padding-left: 0; padding-right: 0;">
 								<div class="btn-group" role="group">
-									<button style="margin-right: 1rem;" type="submit" class="btn btn-default btn-sm">
+									<button id="enviar_mensagem" style="margin-right: 1rem;" type="submit" class="btn btn-default btn-sm">
 										Enviar
 									</button>
 
@@ -111,19 +113,29 @@
 									</label>
 
 								</div>
+								
+								<div class="row" style="margin-left: 1rem">
+									<div class="col-md-6">
+										<input id="notificacoes" type="checkbox">
+										<label>Notificações</label>
+									</div>
+		
+									<div class="col-md-6">
+										<input id="som" type="checkbox">
+										<label>Som</label>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
 				</form>
 			</div>
 		</div>
+
+		<audio id="som_notificacao" src="./assets/notification.mp3"></audio>
 	</div>
 
-	<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-	<script type="text/javascript" src="./assets/soundmanager2.js"></script>
 	<script type="text/javascript" src="./js/index.js"></script>
 </body>
-
-
 </html>
