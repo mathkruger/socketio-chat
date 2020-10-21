@@ -50,7 +50,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
             }
 
             $chat.innerHTML += "<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>';
-            focarUltimaMensagem()
         }
         else {
             if (data.tipo == 'audio') {
@@ -70,11 +69,9 @@ document.addEventListener("DOMContentLoaded", function (event) {
             var message = tag.outerHTML;
 
             $chat.innerHTML += "<li tabindex='1' class='list-group-item list-group-item-default'><span class='text-" + data.cor + "'><strong>" + data.username + '</strong>: ' + message + '</span></li>';
-            focarUltimaMensagem()
         }
 
         if (data.username != usernameGlobal && som) {
-            console.log($som.checked)
             if ($som.checked == true) {
                 $som_notificacao.play();
             }
@@ -84,6 +81,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
                 spawnNotification(data.username + ': ' + (data.blob ? (data.tipo == 'audio' ? 'Gravou um áudio' : 'Enviou uma imagem') : data.message), data.blob, 'Chat da Massa - Sala ' + hashSala);
             }
         }
+
+        focarUltimaMensagem();
     }
 
     function spawnNotification(corpo, icone, titulo) {
@@ -95,11 +94,13 @@ document.addEventListener("DOMContentLoaded", function (event) {
         }
 
         var n = new Notification(titulo, opcoes);
+        n.onclick = function () {
+            window.focus();
+        }
     }
 
     function focarUltimaMensagem() {
-        document.querySelector("#chat li:last-child").classList.add('active-li');
-        document.querySelector("#chat li:last-child").focus = true;
+        $chat.scrollTo(0, $chat.scrollHeight);
         $message.focus = true;
     }
 
@@ -142,6 +143,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
         reader.readAsDataURL(myFile);
         reader.onloadend = function () {
             var base64data = reader.result;
+            $imageBox.value = null;
             socket.emit('image', base64data);
         }
     });
