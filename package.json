@@ -16,7 +16,7 @@
     "express": "^4.15.2",
     "jQuery": "^1.7.4",
     "ngrok": "^2.2.6",
-    "socket.io": "^1.7.3",
+    "socket.io": "^4.5.3",
     "soundmanager2": "^2.97.20150601-a"
   }
 }
